@@ -25,7 +25,7 @@ function deferred<T>(): {
 }
 
 function response(weekId: string): LeaderboardResponse {
-  return { weekId, top: [] };
+  return { weekId, top: [], pool: 0 };
 }
 
 describe('useLeaderboard', () => {

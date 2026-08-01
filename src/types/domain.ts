@@ -37,6 +37,12 @@ export interface LeaderboardResponse {
   weekId: WeekId;
   top: LeaderboardEntry[];
   /**
+   * Live prize pool for the week: 2% of total earnings so far, in integer minor
+   * units (`floor(earn_total * 2 / 100)`). Computed per-request so it tracks live
+   * earnings between reads.
+   */
+  pool: number;
+  /**
    * The caller's own view. Omitted when the caller is already in `top`
    * (they're flagged inside `top` instead) or when no playerId was supplied.
    */

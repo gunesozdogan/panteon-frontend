@@ -12,8 +12,6 @@ import { useLeaderboard } from './hooks/useLeaderboard';
 import { useLiveSimulation } from './hooks/useLiveSimulation';
 import { usePlayerSuggestions } from './hooks/usePlayerSuggestions';
 
-const DEMO_POOL = 4_000_000; // integer minor units; real value arrives via API later.
-
 function App() {
   const { playerId, setPlayerId } = useDemoUser();
   const { status, data, isSlow, refetch } = useLeaderboard(playerId);
@@ -51,7 +49,7 @@ function App() {
             {data && <WeeklyStatus weekId={data.weekId} className="max-w-[40%]" />}
           </div>
         </div>
-        <PrizePoolBanner pool={DEMO_POOL} />
+        {data && <PrizePoolBanner pool={data.pool} />}
       </header>
 
       <fieldset className="mb-4 rounded-lg border border-black/10 p-3 dark:border-white/10">
