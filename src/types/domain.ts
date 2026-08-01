@@ -76,3 +76,23 @@ export interface WeeklyStandingsDoc {
   closedAt: string;
   standings: WeeklyStanding[];
 }
+
+/**
+ * One row of the demo player picker's random sample (`GET /players/sample`).
+ * Auth is scoped out, so a reviewer switches "who am I" by picking a playerId;
+ * this feeds that picker with real, freshly-sampled players + their labels.
+ */
+export interface PlayerSample {
+  playerId: string;
+  username: string;
+  /** 1-indexed current rank. */
+  rank: number;
+  /** True when rank <= 100 — labels the picker ("Top 100" vs "Outside"). */
+  inTop100: boolean;
+}
+
+export interface PlayerSampleResponse {
+  weekId: WeekId;
+  /** Random players, sorted by rank; at least one is in the top 100. */
+  players: PlayerSample[];
+}
