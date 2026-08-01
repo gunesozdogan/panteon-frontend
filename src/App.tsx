@@ -6,8 +6,10 @@ import {
   VirtualizedLeaderboard,
   WeeklyStatus,
 } from './components';
+import { useState } from 'react';
 import { useDemoUser } from './hooks/useDemoUser';
 import { useLeaderboard } from './hooks/useLeaderboard';
+import { useLiveSimulation } from './hooks/useLiveSimulation';
 import { usePlayerSuggestions } from './hooks/usePlayerSuggestions';
 
 const DEMO_POOL = 4_000_000; // integer minor units; real value arrives via API later.
@@ -17,12 +19,37 @@ function App() {
   const { status, data, isSlow, refetch } = useLeaderboard(playerId);
   const suggestions = usePlayerSuggestions(5);
 
+  const [live, setLive] = useState(true);
+  useLiveSimulation(live);
+
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col bg-zinc-50 px-3 py-4 text-zinc-900 sm:px-4 dark:bg-zinc-950 dark:text-zinc-100">
       <header className="mb-4 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-bold sm:text-xl">Weekly Leaderboard</h1>
-          {data && <WeeklyStatus weekId={data.weekId} className="max-w-[52%]" />}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setLive((on) => !on)}
+              aria-pressed={live}
+              title={live ? 'Pause live demo traffic' : 'Resume live demo traffic'}
+              className={
+                'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ' +
+                (live
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'border-black/10 text-zinc-500 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5')
+              }
+            >
+              <span
+                className={
+                  'h-1.5 w-1.5 rounded-full ' +
+                  (live ? 'animate-pulse bg-emerald-500' : 'bg-zinc-400')
+                }
+              />
+              {live ? 'Live' : 'Paused'}
+            </button>
+            {data && <WeeklyStatus weekId={data.weekId} className="max-w-[40%]" />}
+          </div>
         </div>
         <PrizePoolBanner pool={DEMO_POOL} />
       </header>
