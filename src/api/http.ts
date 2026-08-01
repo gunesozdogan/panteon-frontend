@@ -99,3 +99,41 @@ export async function apiGet<T>(
     }
   }
 }
+
+/**
+ * JSON POST — a single attempt, no retry. POSTs have side effects, so replaying
+ * a request whose response we simply didn't see could double-apply it. The only
+ * caller is the demo simulator (`/admin/simulate`), where a dropped tick is
+ * harmless — the next tick covers it — so failing fast beats retrying.
+ */
+export async function apiPost<T>(
+  path: string,
+  body?: unknown,
+  options: ApiRequestOptions = {},
+): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body ?? {}),
+      ...(options.signal ? { signal: options.signal } : {}),
+    });
+  } catch (cause) {
+    if (cause instanceof DOMException && cause.name === 'AbortError') throw cause;
+    throw new ApiError(0, 'network_error', `Network request to ${path} failed`);
+  }
+
+  const responseBody: unknown = await response.json().catch(() => undefined);
+  if (!response.ok) {
+    const errorBody = isApiErrorBody(responseBody) ? responseBody : undefined;
+    const code = errorBody?.error ?? `http_${response.status}`;
+    throw new ApiError(
+      response.status,
+      code,
+      `Request to ${path} failed (${response.status})`,
+      errorBody,
+    );
+  }
+  return responseBody as T;
+}

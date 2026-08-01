@@ -10,7 +10,14 @@ import type {
   WeeklyStandingsDoc,
   WeekId,
 } from '../types/domain';
-import { apiGet, type ApiRequestOptions } from './http';
+import { apiGet, apiPost, type ApiRequestOptions } from './http';
+
+/** Result of one `POST /admin/simulate` batch (the demo live-traffic tick). */
+export interface SimulateResult {
+  weekId: WeekId;
+  playersHit: number;
+  totalEarned: number;
+}
 
 /** `GET /leaderboard?playerId=…` — top 100 plus the caller's own view when outside it. */
 export function getLeaderboard(
@@ -42,4 +49,16 @@ export function getPlayerSample(
 ): Promise<PlayerSampleResponse> {
   const query = n ? `?n=${encodeURIComponent(String(n))}` : '';
   return apiGet<PlayerSampleResponse>(`/players/sample${query}`, options);
+}
+
+/**
+ * `POST /admin/simulate` — apply one batch of random earns so the board keeps
+ * moving (demo live traffic). Fired on the poll tick when the "Live demo" toggle
+ * is on. Backend caps `count`; omit it to use the server default.
+ */
+export function simulateActivity(
+  count?: number,
+  options: ApiRequestOptions = {},
+): Promise<SimulateResult> {
+  return apiPost<SimulateResult>('/admin/simulate', count ? { count } : {}, options);
 }
