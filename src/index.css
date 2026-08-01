@@ -1,4 +1,15 @@
-/* Global baseline. Kept minimal; real theme tokens land with the UI. */
+@import 'tailwindcss';
+
+@theme {
+  --color-gold: #f5b301;
+  --color-silver: #aab1bd;
+  --color-bronze: #cd7f32;
+  --color-brand: #6c5ce7;
+  --color-brand-soft: #8b7bf0;
+  /* Self-row / "this is me" highlight. */
+  --color-me: #22c55e;
+}
+
 :root {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
