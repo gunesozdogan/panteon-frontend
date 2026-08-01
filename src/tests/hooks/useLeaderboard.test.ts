@@ -1,10 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getLeaderboard } from '../api/client';
-import type { LeaderboardResponse } from '../types/domain';
-import { useLeaderboard } from './useLeaderboard';
+import { getLeaderboard } from '../../api/client';
+import type { LeaderboardResponse } from '../../types/domain';
+import { useLeaderboard } from '../../hooks/useLeaderboard';
 
-vi.mock('../api/client', () => ({ getLeaderboard: vi.fn() }));
+vi.mock('../../api/client', () => ({ getLeaderboard: vi.fn() }));
 const mockGet = vi.mocked(getLeaderboard);
 
 afterEach(() => vi.useRealTimers());

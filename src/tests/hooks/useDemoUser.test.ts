@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_DEMO_PLAYER_ID } from '../config';
-import { resolveInitialPlayerId, useDemoUser } from './useDemoUser';
+import { DEFAULT_DEMO_PLAYER_ID } from '../../config';
+import { resolveInitialPlayerId, useDemoUser } from '../../hooks/useDemoUser';
 
 const STORAGE_KEY = 'leaderboard.demoPlayerId';
 

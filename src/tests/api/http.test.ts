@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { API_BASE_URL } from '../config';
-import { ApiError } from './errors';
-import { apiGet } from './http';
+import { API_BASE_URL } from '../../config';
+import { ApiError } from '../../api/errors';
+import { apiGet } from '../../api/http';
 
 /** Minimal `Response` stand-in — apiGet only touches `ok`, `status`, `json()`. */
 function jsonResponse(status: number, body: unknown): Response {
