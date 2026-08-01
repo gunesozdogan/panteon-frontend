@@ -5,6 +5,7 @@
  * through a backend cold start.
  */
 import type {
+  HistoryListResponse,
   LeaderboardResponse,
   PlayerSampleResponse,
   WeeklyStandingsDoc,
@@ -26,6 +27,12 @@ export function getLeaderboard(
 ): Promise<LeaderboardResponse> {
   const query = playerId ? `?playerId=${encodeURIComponent(playerId)}` : '';
   return apiGet<LeaderboardResponse>(`/leaderboard${query}`, options);
+}
+
+export function getHistoryList(
+  options: ApiRequestOptions = {},
+): Promise<HistoryListResponse> {
+  return apiGet<HistoryListResponse>('/leaderboard/history', options);
 }
 
 /** `GET /leaderboard/history/:weekId` — a closed week's archived standings. */

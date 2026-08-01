@@ -16,6 +16,7 @@ export const LEADERBOARD_ROW_HEIGHT = 52;
 interface RowData {
   entries: readonly LeaderboardEntry[];
   selfPlayerId: string | undefined;
+  showPrize: boolean;
 }
 
 /**
@@ -27,6 +28,7 @@ function LeaderboardVirtualRow({
   style,
   entries,
   selfPlayerId,
+  showPrize,
 }: RowComponentProps<RowData>) {
   const entry = entries[index];
   if (!entry) return null;
@@ -34,6 +36,7 @@ function LeaderboardVirtualRow({
     <LeaderboardRow
       entry={entry}
       isMe={entry.playerId === selfPlayerId}
+      showPrize={showPrize}
       style={style}
     />
   );
@@ -43,6 +46,8 @@ export interface VirtualizedLeaderboardProps {
   entries: readonly LeaderboardEntry[];
   /** Highlights (and enables "jump to") the viewing player's own row. */
   selfPlayerId?: string | undefined;
+  /** Show the prize column on each row (closed-week / history views). */
+  showPrize?: boolean;
   /** Height of the scroll viewport; react-window fills it. Default `70vh`. */
   height?: number | string;
   className?: string;
@@ -51,6 +56,7 @@ export interface VirtualizedLeaderboardProps {
 export function VirtualizedLeaderboard({
   entries,
   selfPlayerId,
+  showPrize = false,
   height = '70vh',
   className,
 }: VirtualizedLeaderboardProps) {
@@ -73,7 +79,7 @@ export function VirtualizedLeaderboard({
         rowComponent={LeaderboardVirtualRow}
         rowCount={entries.length}
         rowHeight={LEADERBOARD_ROW_HEIGHT}
-        rowProps={{ entries, selfPlayerId }}
+        rowProps={{ entries, selfPlayerId, showPrize }}
         overscanCount={8}
       />
 

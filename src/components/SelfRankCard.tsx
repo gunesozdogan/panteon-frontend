@@ -1,5 +1,5 @@
 import type { LeaderboardEntry } from '../types/domain';
-import { formatScore } from '../lib/format';
+import { formatMoney, formatScore } from '../lib/format';
 import { cx } from '../lib/cx';
 import { Avatar } from './Avatar';
 
@@ -8,11 +8,19 @@ export interface SelfRankCardProps {
   entry: LeaderboardEntry;
   /** Total ranked players, for "of N" context. Optional. */
   totalPlayers?: number;
+  /** Show the prize won instead of the live score (closed-week / history view). */
+  showPrize?: boolean;
   className?: string;
 }
 
-export function SelfRankCard({ entry, totalPlayers, className }: SelfRankCardProps) {
+export function SelfRankCard({
+  entry,
+  totalPlayers,
+  showPrize = false,
+  className,
+}: SelfRankCardProps) {
   const inTop100 = entry.rank <= 100;
+  const hasPrize = showPrize && entry.prize != null;
   return (
     <div
       aria-label="Your rank"
@@ -41,15 +49,32 @@ export function SelfRankCard({ entry, totalPlayers, className }: SelfRankCardPro
           {entry.username}
         </div>
         <div className="text-xs text-zinc-500 dark:text-zinc-400">
-          {inTop100 ? '🏆 In the top 100' : 'Outside the top 100'}
+          {hasPrize
+            ? entry.prize! > 0
+              ? '🎉 You won a prize'
+              : 'No prize this week'
+            : inTop100
+              ? '🏆 In the top 100'
+              : 'Outside the top 100'}
         </div>
       </div>
 
       <div className="shrink-0 text-right">
-        <div className="font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
-          {formatScore(entry.score)}
-        </div>
-        <div className="text-[10px] uppercase tracking-wide text-zinc-400">Score</div>
+        {hasPrize ? (
+          <>
+            <div className="font-bold tabular-nums text-brand dark:text-brand-soft">
+              🪙 {formatMoney(entry.prize!)}
+            </div>
+            <div className="text-[10px] uppercase tracking-wide text-zinc-400">Prize</div>
+          </>
+        ) : (
+          <>
+            <div className="font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+              {formatScore(entry.score)}
+            </div>
+            <div className="text-[10px] uppercase tracking-wide text-zinc-400">Score</div>
+          </>
+        )}
       </div>
     </div>
   );

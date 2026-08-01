@@ -74,7 +74,12 @@ function delay<T>(value: T): Promise<T> {
 
 export function mockGetLeaderboard(playerId?: string): Promise<LeaderboardResponse> {
   const top = buildTop();
-  const response: LeaderboardResponse = { weekId: MOCK_WEEK_ID, top, pool: MOCK_POOL };
+  const response: LeaderboardResponse = {
+    weekId: MOCK_WEEK_ID,
+    top,
+    pool: MOCK_POOL,
+    totalPlayers: 4321,
+  };
 
   const id = playerId ?? DEFAULT_DEMO_PLAYER_ID;
   const inTop = top.some((e) => e.playerId === id);

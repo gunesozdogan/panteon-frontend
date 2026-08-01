@@ -43,6 +43,12 @@ export interface LeaderboardResponse {
    */
   pool: number;
   /**
+   * Total players on the board this week (everyone who has earned at least once,
+   * `ZCARD lb:{weekId}`). `top` is capped at 100, so this is the true competitor
+   * count; tracks new joiners live.
+   */
+  totalPlayers: number;
+  /**
    * The caller's own view. Omitted when the caller is already in `top`
    * (they're flagged inside `top` instead) or when no playerId was supplied.
    */
@@ -81,6 +87,23 @@ export interface WeeklyStandingsDoc {
   /** ISO-8601 timestamp of when the week was closed. */
   closedAt: string;
   standings: WeeklyStanding[];
+}
+
+/**
+ * Lean summary of one archived week, from `GET /leaderboard/history` (the list
+ * endpoint). Populates the "past weeks" picker without pulling full standings.
+ */
+export interface WeeklyStandingsSummary {
+  weekId: WeekId;
+  /** ISO-8601 timestamp of when the week was closed. */
+  closedAt: string;
+  /** How many players were in the archived standings. */
+  playerCount: number;
+}
+
+/** Response of `GET /leaderboard/history` — the archived-week list. */
+export interface HistoryListResponse {
+  weeks: WeeklyStandingsSummary[];
 }
 
 /**
