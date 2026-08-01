@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockGetHistory, mockGetLeaderboard } from './sampleData';
+import { mockGetHistory, mockGetLeaderboard } from '../../api/sampleData';
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());

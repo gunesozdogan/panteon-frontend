@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { API_BASE_URL } from '../config';
-import { getHistory, getLeaderboard, getPlayerSample } from './client';
+import { API_BASE_URL } from '../../config';
+import { getHistory, getLeaderboard, getPlayerSample } from '../../api/client';
 
 /** Stubs `fetch` and returns the mock so specs can assert the URL it was given. */
 function stubFetch(body: unknown = {}): ReturnType<typeof vi.fn> {
