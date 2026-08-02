@@ -11,7 +11,7 @@
  *    and omits `me`).
  *  - the self window is 3 above + self + 2 below, clipped at the board edges.
  */
-import { DEFAULT_DEMO_PLAYER_ID } from '../config';
+import { SAMPLE_PLAYER_ID } from '../config';
 import type {
   LeaderboardEntry,
   LeaderboardResponse,
@@ -81,7 +81,7 @@ export function mockGetLeaderboard(playerId?: string): Promise<LeaderboardRespon
     totalPlayers: 4321,
   };
 
-  const id = playerId ?? DEFAULT_DEMO_PLAYER_ID;
+  const id = playerId ?? SAMPLE_PLAYER_ID;
   const inTop = top.some((e) => e.playerId === id);
   if (!inTop) response.me = buildSelfView(id);
 

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_DEMO_PLAYER_ID } from '../../config';
+import { INITIAL_PLAYER_ID } from '../../config';
 import { resolveInitialPlayerId, useDemoUser } from '../../hooks/useDemoUser';
 
 const STORAGE_KEY = 'leaderboard.demoPlayerId';
@@ -27,13 +27,13 @@ describe('resolveInitialPlayerId', () => {
     expect(resolveInitialPlayerId()).toBe('pStored');
   });
 
-  it('falls back to the configured default when nothing is stored', () => {
-    expect(resolveInitialPlayerId()).toBe(DEFAULT_DEMO_PLAYER_ID);
+  it('falls back to the configured initial id (undefined when none set)', () => {
+    expect(resolveInitialPlayerId()).toBe(INITIAL_PLAYER_ID);
   });
 
   it('ignores a blank/whitespace URL param', () => {
     window.history.replaceState(null, '', '/?playerId=%20%20');
-    expect(resolveInitialPlayerId()).toBe(DEFAULT_DEMO_PLAYER_ID);
+    expect(resolveInitialPlayerId()).toBe(INITIAL_PLAYER_ID);
   });
 });
 

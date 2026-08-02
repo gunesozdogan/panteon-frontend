@@ -6,8 +6,8 @@ export interface PlayerPickerProps {
   players: readonly PlayerSample[];
   /** Whether the sample is currently (re)loading. */
   loading?: boolean;
-  /** The currently active demo player id (highlighted). */
-  selectedId?: string;
+  /** The currently active demo player id (highlighted); `undefined` = none picked. */
+  selectedId?: string | undefined;
   /** Pick a player to "view as". */
   onSelect: (playerId: string) => void;
   /** Re-roll a fresh random sample. */

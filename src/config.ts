@@ -4,13 +4,16 @@ const rawBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
 export const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
 /**
- * Default demo player when neither the `?playerId=` URL param nor localStorage
- * supplies one. Chosen OUTSIDE the top 100 so the `SelfRankCard` is visible out
- * of the box
+ * Optional explicit initial player, from `VITE_DEFAULT_PLAYER_ID`. When unset the
+ * app starts with NO player selected — the `SelfRankCard` stays hidden until the
+ * user picks one.
  */
-export const DEFAULT_DEMO_PLAYER_ID =
-  import.meta.env.VITE_DEFAULT_PLAYER_ID ?? 'p2500';
+export const INITIAL_PLAYER_ID: string | undefined =
+  import.meta.env.VITE_DEFAULT_PLAYER_ID?.trim() || undefined;
 
-// The demo picker's candidate ids are no longer a static list — they come fresh
-// each load from `GET /players/sample` (real players, rank-labelled, ≥1 top-100).
-// See `usePlayerSuggestions`.
+/**
+ * Subject id for the offline sample/story fixtures (`sampleData.ts`). Kept
+ * concrete and independent of the runtime initial-player logic — the fixtures
+ * must always resolve to a real subject regardless of env.
+ */
+export const SAMPLE_PLAYER_ID = 'p2500';
