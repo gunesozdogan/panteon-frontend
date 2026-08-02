@@ -1,12 +1,16 @@
 /**
  * Persistence is written ONLY on an explicit `setPlayerId` (an actual pick) —
- * never for the auto-resolved default. Persisting the default would pin it into
- * localStorage + the URL on first load, so later changing the default would
- * appear to have no effect (the stored value keeps winning). In production this
- * value would come from a verified JWT, not the client.
+ * never for the auto-resolved initial id. Persisting it would pin it into
+ * localStorage + the URL on first load, so later changing it would appear to
+ * have no effect (the stored value keeps winning). In production this value
+ * would come from a verified JWT, not the client.
+ *
+ * The initial id may be `undefined`: with no `?playerId=`, no stored pick, and
+ * no `VITE_DEFAULT_PLAYER_ID`, the app starts with NO player selected (the
+ * SelfRankCard stays hidden until the user picks one). See `INITIAL_PLAYER_ID`.
  */
 import { useCallback, useState } from 'react';
-import { DEFAULT_DEMO_PLAYER_ID } from '../config';
+import { INITIAL_PLAYER_ID } from '../config';
 
 const STORAGE_KEY = 'leaderboard.demoPlayerId';
 const URL_PARAM = 'playerId';
@@ -26,18 +30,24 @@ function readStoredPlayerId(): string | null {
   }
 }
 
-/** Pure resolution used for the hook's initial state (URL → storage → default). */
-export function resolveInitialPlayerId(): string {
-  return readUrlPlayerId() ?? readStoredPlayerId() ?? DEFAULT_DEMO_PLAYER_ID;
+/**
+ * Pure resolution used for the hook's initial state (URL → storage → optional
+ * env default). Returns `undefined` when none supplies an id — i.e. start with
+ * no player selected.
+ */
+export function resolveInitialPlayerId(): string | undefined {
+  return readUrlPlayerId() ?? readStoredPlayerId() ?? INITIAL_PLAYER_ID;
 }
 
 export interface UseDemoUserResult {
-  playerId: string;
+  playerId: string | undefined;
   setPlayerId: (id: string) => void;
 }
 
 export function useDemoUser(): UseDemoUserResult {
-  const [playerId, setPlayerIdState] = useState<string>(resolveInitialPlayerId);
+  const [playerId, setPlayerIdState] = useState<string | undefined>(
+    resolveInitialPlayerId,
+  );
 
   const setPlayerId = useCallback((id: string) => {
     const trimmed = id.trim();
