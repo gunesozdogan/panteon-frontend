@@ -97,6 +97,42 @@ in-app player picker; the choice is persisted to `localStorage`.
 
 ---
 
+## Using the app
+
+There is no login (auth is out of scope for the case), so the app gives you
+reviewer-facing controls to stand in for "who am I" and to drive the weekly
+lifecycle by hand. A typical walkthrough:
+
+1. **Open the app.** You land in **live** mode on the current week. The top 100
+   is on the left/main area; the default demo player (`p2500`) is outside the
+   top 100, so their pinned **self-rank card** ("Around you" window) is visible
+   right away.
+2. **Pick who you're viewing as.** In the **"Viewing as (random sample)"**
+   picker, each button is a real sampled player labelled `username / #rank`
+   (a 🏆 means they're currently in the top 100). Click one to re-render the
+   whole screen as that player — the leaderboard highlights their row, the
+   self-rank card follows them, and the earnings/profile panel shows their
+   wallet. Hit **re-roll** to draw a fresh random set of candidates. Your choice
+   is remembered across reloads (`localStorage`).
+3. **Read your standing.** The **earnings panel** (Profile tab on mobile) shows
+   the selected player's **total winnings** (durable wallet balance from
+   Postgres) and their **prize history** per closed week, plus their current
+   rank/score.
+4. **Watch it move (optional).** Toggle **live** on to start client-driven demo
+   traffic — the board keeps updating as simulated players earn. Toggle it off to
+   freeze it. (The traffic is browser-driven on purpose so the backend stays
+   stateless.)
+5. **Close the week.** Use **Close week** to distribute the prize pool now,
+   archive the standings, and reset the board — instead of waiting for the Monday
+   cron. After a close, the winners' new payouts show up in their earnings panel.
+6. **Browse past weeks.** Switch the **week selector** to a closed week to enter
+   **history** mode: an immutable, archived standings view (no polling, no
+   simulation) served from the backend's history endpoint.
+
+> Tip: to jump straight to a specific player, append `?playerId=p123` to the URL.
+
+---
+
 ## Project structure
 
 ```
