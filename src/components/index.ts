@@ -10,6 +10,10 @@ export { RankBadge } from './RankBadge';
 export type { RankBadgeProps } from './RankBadge';
 export { SelfRankCard } from './SelfRankCard';
 export type { SelfRankCardProps } from './SelfRankCard';
+export { StatCard } from './StatCard';
+export type { StatCardProps } from './StatCard';
+export { WeekSelector } from './WeekSelector';
+export type { WeekSelectorProps } from './WeekSelector';
 export {
   VirtualizedLeaderboard,
   LEADERBOARD_ROW_HEIGHT,

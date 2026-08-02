@@ -23,6 +23,8 @@ import type {
 
 const MOCK_WEEK_ID: WeekId = '2026-W31';
 const TOP_SIZE = 100;
+/** Sample prize pool (integer minor units) for mock responses. */
+const MOCK_POOL = 4_000_000;
 /** Simulated network latency so loading states are exercised in mock mode. */
 const MOCK_LATENCY_MS = 180;
 
@@ -72,7 +74,12 @@ function delay<T>(value: T): Promise<T> {
 
 export function mockGetLeaderboard(playerId?: string): Promise<LeaderboardResponse> {
   const top = buildTop();
-  const response: LeaderboardResponse = { weekId: MOCK_WEEK_ID, top };
+  const response: LeaderboardResponse = {
+    weekId: MOCK_WEEK_ID,
+    top,
+    pool: MOCK_POOL,
+    totalPlayers: 4321,
+  };
 
   const id = playerId ?? DEFAULT_DEMO_PLAYER_ID;
   const inTop = top.some((e) => e.playerId === id);
@@ -93,7 +100,7 @@ function prizeFor(rank: number, pool: number): number {
 }
 
 export function mockGetHistory(weekId: WeekId): Promise<WeeklyStandingsDoc> {
-  const pool = 4_000_000;
+  const pool = MOCK_POOL;
   const standings: WeeklyStanding[] = Array.from({ length: TOP_SIZE }, (_, i) => {
     const rank = i + 1;
     const base = entryFor(rank);
