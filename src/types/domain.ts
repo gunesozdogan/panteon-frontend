@@ -125,3 +125,51 @@ export interface PlayerSampleResponse {
   /** Random players, sorted by rank; at least one is in the top 100. */
   players: PlayerSample[];
 }
+
+/** One prize a player won in a past close (a row of the backend `payouts` table). */
+export interface PlayerPayout {
+  weekId: WeekId;
+  /** Final rank in that close. */
+  rank: number;
+  /** Prize won, integer minor units. */
+  prize: number;
+  /** ISO-8601 timestamp the prize was distributed. */
+  distributedAt: string;
+}
+
+/**
+ * A player's durable money view (`GET /players/:playerId/wallet`) — sourced from
+ * Postgres (the money source of truth), NOT Redis. `balance` is the cumulative
+ * winnings credited across all closes; `payouts` is the per-close breakdown.
+ * All money fields are integer minor units.
+ */
+export interface PlayerWalletResponse {
+  playerId: string;
+  username: string;
+  /** Total winnings credited to the wallet, integer minor units. */
+  balance: number;
+  /** Prizes won per close, newest first. */
+  payouts: PlayerPayout[];
+}
+
+/**
+ * Summary returned by `POST /admin/close-week`. For the `{ early: true }` demo
+ * close, `weekId` is the server-minted `-early` archive id (the live week is
+ * distributed + archived AND reset — scores/pool back to 0). All money fields are
+ * integer minor units.
+ */
+export interface CloseWeekResult {
+  weekId: WeekId;
+  /** ISO-8601 timestamp of when the week was closed/snapshotted. */
+  closedAt: string;
+  /** Raw total earned this week (`earn_total:{weekId}`). */
+  earnTotal: number;
+  /** Distributable pool = floor(earnTotal * 2 / 100). */
+  pool: number;
+  /** Players who received a payout this run (0 on an idempotent re-run). */
+  playersPaid: number;
+  /** Σ of prizes actually credited to wallets this run. */
+  totalDistributed: number;
+  /** True when there was nothing to close — the routine was a safe no-op. */
+  alreadyClosed: boolean;
+}

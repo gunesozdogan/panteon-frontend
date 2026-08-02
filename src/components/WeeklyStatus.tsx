@@ -32,13 +32,15 @@ export function WeeklyStatus({ weekId, resetsAt, now = new Date(), className }: 
     >
       <div className="flex items-center gap-2">
         <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-me" aria-hidden />
-        <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{weekId}</span>
+        <span className="whitespace-nowrap text-xs font-semibold text-zinc-800 sm:text-sm dark:text-zinc-100">
+          {weekId}
+        </span>
       </div>
       <div className="text-right">
         <div className="text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           {resetting ? 'Status' : 'Resets in'}
         </div>
-        <div className="text-sm font-semibold tabular-nums text-zinc-800 dark:text-zinc-100">
+        <div className="whitespace-nowrap text-xs font-semibold tabular-nums text-zinc-800 sm:text-sm dark:text-zinc-100">
           {resetting ? 'Resetting…' : formatCountdown(remainingMs)}
         </div>
       </div>

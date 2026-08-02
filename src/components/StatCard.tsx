@@ -25,7 +25,7 @@ export function StatCard({ label, value, icon, hint, className }: StatCardProps)
       <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
         {label}
       </span>
-      <span className="flex items-baseline gap-1 truncate text-lg font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+      <span className="flex items-baseline gap-1 truncate text-base font-bold tabular-nums text-zinc-900 sm:text-lg dark:text-zinc-100">
         {icon != null && <span aria-hidden>{icon}</span>}
         {value}
       </span>
