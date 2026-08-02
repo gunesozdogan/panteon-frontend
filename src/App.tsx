@@ -21,6 +21,7 @@ import { usePlayerSuggestions } from './hooks/usePlayerSuggestions';
 import { usePlayerWallet } from './hooks/usePlayerWallet';
 import { cx } from './lib/cx';
 import { formatCompact } from './lib/format';
+import { CoinIcon, FlagIcon, TrophyIcon, UserIcon, UsersIcon } from './components/icons';
 import type { LeaderboardEntry, WeekId } from './types/domain';
 
 /** Which panel the mobile (single-column) layout is showing. */
@@ -55,7 +56,7 @@ function App() {
       setCloseMsg(
         result.alreadyClosed
           ? 'Nothing to distribute yet — the board is empty.'
-          : `Distributed 🪙 ${formatCompact(result.totalDistributed / 100)} to ${result.playersPaid} players · archived as ${result.weekId}. The board has been reset.`,
+          : `Distributed ${formatCompact(result.totalDistributed / 100)} coins to ${result.playersPaid} players · archived as ${result.weekId}. The board has been reset.`,
       );
       refetch();
       refetchHistoryWeeks();
@@ -119,7 +120,8 @@ function App() {
                 title="Distribute the prize pool now, archive the standings, and reset the board (demo)"
                 className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600 hover:bg-amber-500/20 disabled:opacity-50 dark:text-amber-400"
               >
-                {closing ? '⏳ Closing…' : '🏁 Close week'}
+                <FlagIcon className="h-3.5 w-3.5" />
+                {closing ? 'Closing…' : 'Close week'}
               </button>
             )}
           </div>
@@ -154,7 +156,7 @@ function App() {
                 <StatCard
                   label="Players competing"
                   value={formatCompact(data.totalPlayers)}
-                  icon="👥"
+                  icon={<UsersIcon />}
                   hint={`${data.totalPlayers.toLocaleString()} total`}
                 />
                 <WeeklyStatus weekId={data.weekId} />
@@ -171,10 +173,12 @@ function App() {
         className="mb-3 grid grid-cols-2 gap-1 rounded-lg border border-black/10 p-1 lg:hidden dark:border-white/10"
       >
         <TabButton active={tab === 'board'} onClick={() => setTab('board')}>
-          🏆 Leaderboard
+          <TrophyIcon className="h-4 w-4" />
+          Leaderboard
         </TabButton>
         <TabButton active={tab === 'profile'} onClick={() => setTab('profile')}>
-          👤 Profile
+          <UserIcon className="h-4 w-4" />
+          Profile
         </TabButton>
       </div>
 
@@ -185,13 +189,15 @@ function App() {
             'flex-col gap-3 lg:flex lg:w-80 lg:shrink-0',
           )}
         >
-          <PlayerPicker
-            players={suggestions.players}
-            loading={suggestions.status === 'loading'}
-            selectedId={playerId}
-            onSelect={setPlayerId}
-            onReroll={suggestions.refetch}
-          />
+          {!isHistory && (
+            <PlayerPicker
+              players={suggestions.players}
+              loading={suggestions.status === 'loading'}
+              selectedId={playerId}
+              onSelect={setPlayerId}
+              onReroll={suggestions.refetch}
+            />
+          )}
           <EarningsPanel
             status={wallet.status}
             wallet={wallet.data}
@@ -253,7 +259,7 @@ function TabButton({
       aria-selected={active}
       onClick={onClick}
       className={cx(
-        'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+        'inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
         active
           ? 'bg-brand text-white'
           : 'text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/5',
@@ -283,12 +289,21 @@ function HistoryHeader({
       <StatCard
         label="Players competed"
         value={standings ? formatCompact(standings.length) : '—'}
-        icon="👥"
+        icon={<UsersIcon />}
         hint={standings ? `${standings.length.toLocaleString()} total` : undefined}
       />
       <StatCard
         label={`${weekId} · closed`}
-        value={standings ? `🪙 ${formatCompact(distributed / 100)}` : '—'}
+        value={
+          standings ? (
+            <span className="flex items-center gap-1">
+              <CoinIcon />
+              {formatCompact(distributed / 100)}
+            </span>
+          ) : (
+            '—'
+          )
+        }
         hint={
           closedAt
             ? `Distributed ${new Date(closedAt).toLocaleDateString()}`
@@ -342,8 +357,20 @@ function LiveBoard({
   }
 
   if (status === 'success' && data) {
+    const selfInTop = data.top.some((e) => e.playerId === playerId);
+    const notCompeting = !!playerId && !data.me && !selfInTop;
+
     return (
       <>
+        {notCompeting && (
+          <div className="rounded-xl border border-dashed border-black/15 bg-white/60 px-4 py-3 text-sm text-zinc-600 dark:border-white/15 dark:bg-zinc-900/60 dark:text-zinc-300">
+            <span className="font-medium text-zinc-800 dark:text-zinc-100">
+              You haven't joined this week yet.
+            </span>{' '}
+            Earn something to appear on the board — your rank shows up as soon as you score.
+          </div>
+        )}
+
         {data.me && (
           <section aria-label="Your position" className="flex flex-col gap-2">
             <div className="sticky top-2 z-10">
@@ -367,10 +394,13 @@ function LiveBoard({
         )}
 
         {!playerId && data.top.length > 0 && (
-          <div className="rounded-xl border border-dashed border-black/15 bg-white/60 px-3 py-2.5 text-center text-xs text-zinc-500 dark:border-white/15 dark:bg-zinc-900/60">
-            👤 Pick a player from the{' '}
-            <span className="font-medium text-zinc-700 dark:text-zinc-300">Profile</span>{' '}
-            panel to see their own rank and prize.
+          <div className="flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-black/15 bg-white/60 px-3 py-2.5 text-center text-xs text-zinc-500 dark:border-white/15 dark:bg-zinc-900/60">
+            <UserIcon className="h-4 w-4 shrink-0" />
+            <span>
+              Pick a player from the{' '}
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">Profile</span>{' '}
+              panel to see their own rank and prize.
+            </span>
           </div>
         )}
 

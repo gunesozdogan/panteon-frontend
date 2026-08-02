@@ -31,6 +31,6 @@ describe('LeaderboardRow', () => {
 
     rerender(<LeaderboardRow entry={withPrize} showPrize />);
     expect(screen.getByText('Prize')).toBeTruthy();
-    expect(screen.getByText('🪙 40,000.00')).toBeTruthy();
+    expect(screen.getByText('40,000.00')).toBeTruthy();
   });
 });

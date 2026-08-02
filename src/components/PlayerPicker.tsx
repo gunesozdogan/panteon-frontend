@@ -1,5 +1,6 @@
 import type { PlayerSample } from '../types/domain';
 import { cx } from '../lib/cx';
+import { DiceIcon, TrophyIcon } from './icons';
 
 export interface PlayerPickerProps {
   /** Freshly-sampled candidate players (rank-labelled, ≥1 in the top 100). */
@@ -42,9 +43,10 @@ export function PlayerPicker({
         <button
           type="button"
           onClick={onReroll}
-          className="rounded-md bg-brand px-2.5 py-1.5 text-sm font-medium text-white hover:opacity-90"
+          className="inline-flex items-center gap-1.5 rounded-md bg-brand px-2.5 py-1.5 text-sm font-medium text-white hover:opacity-90"
         >
-          🎲 re-roll
+          <DiceIcon />
+          re-roll
         </button>
         {loading && <span className="text-sm text-zinc-500">loading…</span>}
         {players.map((p) => (
@@ -59,8 +61,10 @@ export function PlayerPicker({
                 : 'border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5',
             )}
           >
-            {p.username} / #{p.rank}
-            {p.inTop100 ? ' 🏆' : ''}
+            <span className="inline-flex items-center gap-1">
+              {p.username} / #{p.rank}
+              {p.inTop100 && <TrophyIcon className="h-3.5 w-3.5 text-gold" />}
+            </span>
           </button>
         ))}
       </div>
