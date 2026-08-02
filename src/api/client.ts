@@ -5,9 +5,11 @@
  * through a backend cold start.
  */
 import type {
+  CloseWeekResult,
   HistoryListResponse,
   LeaderboardResponse,
   PlayerSampleResponse,
+  PlayerWalletResponse,
   WeeklyStandingsDoc,
   WeekId,
 } from '../types/domain';
@@ -16,6 +18,7 @@ import { apiGet, apiPost, type ApiRequestOptions } from './http';
 /** Result of one `POST /admin/simulate` batch (the demo live-traffic tick). */
 export interface SimulateResult {
   weekId: WeekId;
+  boardSize: number;
   playersHit: number;
   totalEarned: number;
 }
@@ -59,6 +62,35 @@ export function getPlayerSample(
 }
 
 /**
+ * `GET /players/ranks?ids=…` — current rank/label for a SPECIFIC set of players
+ * (the picker's in-place refresh: same faces, fresh ranks). Ids no longer on the
+ * board are omitted from the response.
+ */
+export function getPlayerRanks(
+  ids: readonly string[],
+  options: ApiRequestOptions = {},
+): Promise<PlayerSampleResponse> {
+  const query = `?ids=${encodeURIComponent(ids.join(','))}`;
+  return apiGet<PlayerSampleResponse>(`/players/ranks${query}`, options);
+}
+
+/**
+ * `GET /players/:playerId/wallet` — a player's durable money view (total winnings
+ * + per-close payout history) from Postgres. This is what surfaces the wallet
+ * credits that close-week writes; the live competition score stays on the
+ * leaderboard endpoint. Retrying GET (carries through a cold start).
+ */
+export function getPlayerWallet(
+  playerId: string,
+  options: ApiRequestOptions = {},
+): Promise<PlayerWalletResponse> {
+  return apiGet<PlayerWalletResponse>(
+    `/players/${encodeURIComponent(playerId)}/wallet`,
+    options,
+  );
+}
+
+/**
  * `POST /admin/simulate` — apply one batch of random earns so the board keeps
  * moving (demo live traffic). Fired on the poll tick when the "Live demo" toggle
  * is on. Backend caps `count`; omit it to use the server default.
@@ -68,4 +100,18 @@ export function simulateActivity(
   options: ApiRequestOptions = {},
 ): Promise<SimulateResult> {
   return apiPost<SimulateResult>('/admin/simulate', count ? { count } : {}, options);
+}
+
+/**
+ * `POST /admin/close-week` with `{ early: true }` — a DEMO SNAPSHOT of the
+ * current live week: distributes + archives the current standings under a
+ * server-minted `-early` id and credits wallets, WITHOUT resetting the board
+ * (the week keeps running). Lets a reviewer trigger the end-of-week payout by
+ * hand instead of waiting for the Monday cron. Single attempt, no retry (it's a
+ * side-effecting POST); the backend mints a fresh archive id per call.
+ */
+export function closeWeekEarly(
+  options: ApiRequestOptions = {},
+): Promise<CloseWeekResult> {
+  return apiPost<CloseWeekResult>('/admin/close-week', { early: true }, options);
 }

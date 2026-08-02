@@ -1,6 +1,8 @@
 import {
+  EarningsPanel,
   LeaderboardRow,
   LeaderboardSkeleton,
+  PlayerPicker,
   PrizePoolBanner,
   SelfRankCard,
   StatCard,
@@ -8,64 +10,129 @@ import {
   WeeklyStatus,
   WeekSelector,
 } from './components';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { closeWeekEarly } from './api/client';
 import { useDemoUser } from './hooks/useDemoUser';
 import { useHistory } from './hooks/useHistory';
 import { useHistoryWeeks } from './hooks/useHistoryWeeks';
 import { useLeaderboard } from './hooks/useLeaderboard';
 import { useLiveSimulation } from './hooks/useLiveSimulation';
 import { usePlayerSuggestions } from './hooks/usePlayerSuggestions';
+import { usePlayerWallet } from './hooks/usePlayerWallet';
+import { cx } from './lib/cx';
 import { formatCompact } from './lib/format';
 import type { LeaderboardEntry, WeekId } from './types/domain';
+
+/** Which panel the mobile (single-column) layout is showing. */
+type MobileTab = 'board' | 'profile';
 
 function App() {
   const { playerId, setPlayerId } = useDemoUser();
   const [selectedWeek, setSelectedWeek] = useState<WeekId | undefined>(undefined);
   const isHistory = selectedWeek != null;
 
+  const [live, setLive] = useState(true);
+
   const { status, data, isSlow, refetch } = useLeaderboard(playerId);
   const historyWeeks = useHistoryWeeks();
   const history = useHistory(selectedWeek);
-  const suggestions = usePlayerSuggestions(5);
-  const [live, setLive] = useState(true);
+  const suggestions = usePlayerSuggestions(5, live && !isHistory);
+  const wallet = usePlayerWallet(playerId);
   useLiveSimulation(live && !isHistory);
 
+  const [tab, setTab] = useState<MobileTab>('board');
+
+  const [closing, setClosing] = useState(false);
+  const [closeMsg, setCloseMsg] = useState<string | null>(null);
+  const refetchHistoryWeeks = historyWeeks.refetch;
+  const refetchWallet = wallet.refetch;
+  const handleCloseEarly = useCallback(async () => {
+    if (closing) return;
+    setClosing(true);
+    setCloseMsg(null);
+    try {
+      const result = await closeWeekEarly();
+      setCloseMsg(
+        result.alreadyClosed
+          ? 'Nothing to distribute yet — the board is empty.'
+          : `Distributed 🪙 ${formatCompact(result.totalDistributed / 100)} to ${result.playersPaid} players · archived as ${result.weekId}. The board has been reset.`,
+      );
+      refetch();
+      refetchHistoryWeeks();
+      refetchWallet();
+    } catch {
+      setCloseMsg('Could not close the week. Please try again.');
+    } finally {
+      setClosing(false);
+    }
+  }, [closing, refetch, refetchHistoryWeeks, refetchWallet]);
+
+  // The selected player's current standing (live week or the selected archive),
+  // feeding the earnings panel's "this week / that week" context line.
+  const currentEntry = useMemo<LeaderboardEntry | undefined>(() => {
+    if (isHistory) {
+      return history.data?.standings.find((e) => e.playerId === playerId);
+    }
+    return data?.me?.entry ?? data?.top.find((e) => e.playerId === playerId);
+  }, [isHistory, history.data, data, playerId]);
+
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col bg-zinc-50 px-3 py-4 text-zinc-900 sm:px-4 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="mx-auto flex min-h-screen max-w-5xl flex-col bg-zinc-50 px-3 py-4 text-zinc-900 sm:px-4 dark:bg-zinc-950 dark:text-zinc-100">
       <header className="mb-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-lg font-bold sm:text-xl">Weekly Leaderboard</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {!isHistory && (
               <button
                 type="button"
                 onClick={() => setLive((on) => !on)}
                 aria-pressed={live}
                 title={live ? 'Pause live demo traffic' : 'Resume live demo traffic'}
-                className={
-                  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ' +
-                  (live
+                className={cx(
+                  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
+                  live
                     ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    : 'border-black/10 text-zinc-500 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5')
-                }
+                    : 'border-black/10 text-zinc-500 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5',
+                )}
               >
                 <span
-                  className={
-                    'h-1.5 w-1.5 rounded-full ' +
-                    (live ? 'animate-pulse bg-emerald-500' : 'bg-zinc-400')
-                  }
+                  className={cx(
+                    'h-1.5 w-1.5 rounded-full',
+                    live ? 'animate-pulse bg-emerald-500' : 'bg-zinc-400',
+                  )}
                 />
                 {live ? 'Live' : 'Paused'}
               </button>
             )}
-            <WeekSelector
-              weeks={historyWeeks.weeks}
-              value={selectedWeek}
-              onChange={setSelectedWeek}
-              loading={historyWeeks.status === 'loading'}
-            />
+            {!isHistory && (
+              <button
+                type="button"
+                onClick={handleCloseEarly}
+                disabled={closing}
+                title="Distribute the prize pool now, archive the standings, and reset the board (demo)"
+                className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600 hover:bg-amber-500/20 disabled:opacity-50 dark:text-amber-400"
+              >
+                {closing ? '⏳ Closing…' : '🏁 Close week'}
+              </button>
+            )}
           </div>
+          <WeekSelector
+            weeks={historyWeeks.weeks}
+            value={selectedWeek}
+            onChange={setSelectedWeek}
+            loading={historyWeeks.status === 'loading'}
+            className="basis-full"
+          />
         </div>
+
+        {!isHistory && closeMsg && (
+          <p
+            role="status"
+            className="rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400"
+          >
+            {closeMsg}
+          </p>
+        )}
 
         {isHistory ? (
           <HistoryHeader
@@ -91,57 +158,102 @@ function App() {
         )}
       </header>
 
-      <fieldset className="mb-4 rounded-lg border border-black/10 p-3 dark:border-white/10">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-          Viewing as (random sample)
-        </legend>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={suggestions.refetch}
-            className="rounded-md bg-brand px-2.5 py-1.5 text-sm font-medium text-white hover:opacity-90"
-          >
-            🎲 re-roll
-          </button>
-          {suggestions.status === 'loading' && (
-            <span className="text-sm text-zinc-500">loading…</span>
-          )}
-          {suggestions.players.map((p) => (
-            <button
-              key={p.playerId}
-              type="button"
-              onClick={() => setPlayerId(p.playerId)}
-              className={
-                'rounded-md border px-2.5 py-1.5 text-sm ' +
-                (p.playerId === playerId
-                  ? 'border-brand bg-brand/10 font-semibold text-brand'
-                  : 'border-black/10 hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5')
-              }
-            >
-              {p.username} / #{p.rank} / {p.inTop100 ? '🏆' : 'Outside'}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <div
+        role="tablist"
+        aria-label="Sections"
+        className="mb-3 grid grid-cols-2 gap-1 rounded-lg border border-black/10 p-1 lg:hidden dark:border-white/10"
+      >
+        <TabButton active={tab === 'board'} onClick={() => setTab('board')}>
+          🏆 Leaderboard
+        </TabButton>
+        <TabButton active={tab === 'profile'} onClick={() => setTab('profile')}>
+          👤 Profile
+        </TabButton>
+      </div>
 
-      <main className="flex flex-1 flex-col gap-3">
-        {isHistory ? (
-          <HistoryBoard
-            status={history.status}
-            standings={history.data?.standings}
-            playerId={playerId}
+      <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-start">
+        <aside
+          className={cx(
+            tab === 'profile' ? 'flex' : 'hidden',
+            'flex-col gap-3 lg:flex lg:w-80 lg:shrink-0',
+          )}
+        >
+          <PlayerPicker
+            players={suggestions.players}
+            loading={suggestions.status === 'loading'}
+            selectedId={playerId}
+            onSelect={setPlayerId}
+            onReroll={suggestions.refetch}
           />
-        ) : (
-          <LiveBoard
-            status={status}
-            data={data}
-            isSlow={isSlow}
-            refetch={refetch}
-            playerId={playerId}
+          <EarningsPanel
+            status={wallet.status}
+            wallet={wallet.data}
+            username={currentEntry?.username}
+            current={
+              currentEntry
+                ? {
+                    rank: currentEntry.rank,
+                    score: currentEntry.score,
+                    ...(currentEntry.prize != null ? { prize: currentEntry.prize } : {}),
+                  }
+                : undefined
+            }
+            currentLabel={isHistory ? (selectedWeek ?? 'Archived') : 'This week'}
           />
-        )}
-      </main>
+        </aside>
+
+        <main
+          className={cx(
+            tab === 'board' ? 'flex' : 'hidden',
+            'min-w-0 flex-1 flex-col gap-3 lg:flex',
+          )}
+        >
+          {isHistory ? (
+            <HistoryBoard
+              status={history.status}
+              standings={history.data?.standings}
+              playerId={playerId}
+            />
+          ) : (
+            <LiveBoard
+              status={status}
+              data={data}
+              isSlow={isSlow}
+              refetch={refetch}
+              playerId={playerId}
+            />
+          )}
+        </main>
+      </div>
     </div>
+  );
+}
+
+/** One button in the mobile tab switcher. */
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cx(
+        'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+        active
+          ? 'bg-brand text-white'
+          : 'text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/5',
+      )}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -252,19 +364,13 @@ function LiveBoard({
             No one has scored yet this week. Be the first to climb the board!
           </div>
         ) : (
-          <section aria-label="Top 100" className="flex flex-1 flex-col gap-2">
-            <div className="flex items-baseline justify-between px-1">
-              <h2 className="text-sm font-semibold text-zinc-500">Top 100</h2>
-              <span className="text-xs text-zinc-400">
-                {data.top.length} of {data.totalPlayers.toLocaleString()} shown
-              </span>
-            </div>
-            <VirtualizedLeaderboard
-              entries={data.top}
-              selfPlayerId={playerId}
-              className="flex-1"
-            />
-          </section>
+          <VirtualizedLeaderboard
+            entries={data.top}
+            selfPlayerId={playerId}
+            title="Top 100"
+            countLabel={`${data.top.length} of ${data.totalPlayers.toLocaleString()} shown`}
+            className="flex-1"
+          />
         )}
       </>
     );
@@ -308,18 +414,14 @@ function HistoryBoard({
             <SelfRankCard entry={selfEntry} showPrize />
           </div>
         )}
-        <section aria-label="Final standings" className="flex flex-1 flex-col gap-2">
-          <div className="flex items-baseline justify-between px-1">
-            <h2 className="text-sm font-semibold text-zinc-500">Final standings</h2>
-            <span className="text-xs text-zinc-400">{standings.length} players</span>
-          </div>
-          <VirtualizedLeaderboard
-            entries={standings}
-            selfPlayerId={playerId}
-            showPrize
-            className="flex-1"
-          />
-        </section>
+        <VirtualizedLeaderboard
+          entries={standings}
+          selfPlayerId={playerId}
+          showPrize
+          title="Final standings"
+          countLabel={`${standings.length} players`}
+          className="flex-1"
+        />
       </>
     );
   }

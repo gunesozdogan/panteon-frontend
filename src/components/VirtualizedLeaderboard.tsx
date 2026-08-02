@@ -51,6 +51,12 @@ export interface VirtualizedLeaderboardProps {
   /** Height of the scroll viewport; react-window fills it. Default `70vh`. */
   height?: number | string;
   className?: string;
+  /** Header title (e.g. "Top 100"). When set, the component renders its own */
+  title?: string;
+  /** Right-aligned summary text in the header (e.g. "100 of 12,345 shown"). */
+  countLabel?: string;
+  /** aria-label for the wrapping <section> (defaults to `title`). */
+  ariaLabel?: string;
 }
 
 export function VirtualizedLeaderboard({
@@ -59,6 +65,9 @@ export function VirtualizedLeaderboard({
   showPrize = false,
   height = '70vh',
   className,
+  title,
+  countLabel,
+  ariaLabel,
 }: VirtualizedLeaderboardProps) {
   const listRef = useListRef(null);
   const selfIndex = findSelfIndex(entries, selfPlayerId);
@@ -70,28 +79,49 @@ export function VirtualizedLeaderboard({
 
   const listStyle: CSSProperties = { height };
 
+  const jumpButton =
+    selfIndex >= 0 ? (
+      <button
+        type="button"
+        onClick={jumpToSelf}
+        className="rounded-full bg-me px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:opacity-90"
+      >
+        ↧ Jump to my rank (#{entries[selfIndex]?.rank})
+      </button>
+    ) : null;
+
+  const list = (
+    <List
+      listRef={listRef}
+      style={listStyle}
+      className="overflow-y-auto rounded-xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900"
+      rowComponent={LeaderboardVirtualRow}
+      rowCount={entries.length}
+      rowHeight={LEADERBOARD_ROW_HEIGHT}
+      rowProps={{ entries, selfPlayerId, showPrize }}
+      overscanCount={8}
+    />
+  );
+
+  if (title) {
+    return (
+      <section aria-label={ariaLabel ?? title} className={cx('flex flex-col gap-2', className)}>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
+          <div className="flex flex-wrap items-baseline gap-2">
+            <h2 className="text-sm font-semibold text-zinc-500">{title}</h2>
+            {jumpButton}
+          </div>
+          {countLabel && <span className="text-xs text-zinc-400">{countLabel}</span>}
+        </div>
+        {list}
+      </section>
+    );
+  }
+
   return (
     <div className={cx('relative', className)}>
-      <List
-        listRef={listRef}
-        style={listStyle}
-        className="overflow-y-auto rounded-xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900"
-        rowComponent={LeaderboardVirtualRow}
-        rowCount={entries.length}
-        rowHeight={LEADERBOARD_ROW_HEIGHT}
-        rowProps={{ entries, selfPlayerId, showPrize }}
-        overscanCount={8}
-      />
-
-      {selfIndex >= 0 && (
-        <button
-          type="button"
-          onClick={jumpToSelf}
-          className="absolute bottom-3 right-3 rounded-full bg-me px-3 py-1.5 text-xs font-semibold text-white shadow-lg hover:opacity-90"
-        >
-          ↧ Jump to my rank (#{entries[selfIndex]?.rank})
-        </button>
-      )}
+      {list}
+      {jumpButton && <div className="absolute bottom-3 right-3">{jumpButton}</div>}
     </div>
   );
 }
