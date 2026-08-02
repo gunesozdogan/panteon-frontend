@@ -80,7 +80,14 @@ function App() {
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col bg-zinc-50 px-3 py-4 text-zinc-900 sm:px-4 dark:bg-zinc-950 dark:text-zinc-100">
       <header className="mb-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-lg font-bold sm:text-xl">Weekly Leaderboard</h1>
+          <div className="flex items-center gap-2">
+            <img
+              src="/logo.png"
+              alt="Panteon logo"
+              className="h-8 w-8 shrink-0 sm:h-9 sm:w-9"
+            />
+            <h1 className="text-lg font-bold sm:text-xl">Weekly Leaderboard</h1>
+          </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {!isHistory && (
               <button
