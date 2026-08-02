@@ -4,6 +4,7 @@ import { formatMoney, formatScore } from '../lib/format';
 import { cx } from '../lib/cx';
 import { Avatar } from './Avatar';
 import { RankBadge } from './RankBadge';
+import { CoinIcon } from './icons';
 
 export interface LeaderboardRowProps {
   entry: LeaderboardEntry;
@@ -36,7 +37,7 @@ export function LeaderboardRow({
         className,
       )}
     >
-      <RankBadge rank={entry.rank} size="sm" className="sm:h-9 sm:w-9 sm:text-sm" />
+      <RankBadge rank={entry.rank} size="sm" className="sm:h-9 sm:min-w-9" />
       <Avatar username={entry.username} size="sm" className="sm:h-9 sm:w-9 sm:text-xs" />
 
       <div className="min-w-0 flex-1">
@@ -60,8 +61,9 @@ export function LeaderboardRow({
       <div className="shrink-0 text-right">
         {hasPrize ? (
           <>
-            <div className="font-semibold tabular-nums text-brand dark:text-brand-soft">
-              🪙 {formatMoney(entry.prize!)}
+            <div className="flex items-center justify-end gap-1 font-semibold tabular-nums text-brand dark:text-brand-soft">
+              <CoinIcon />
+              {formatMoney(entry.prize!)}
             </div>
             <div className="text-[10px] uppercase tracking-wide text-zinc-400">Prize</div>
           </>

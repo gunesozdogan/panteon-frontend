@@ -36,10 +36,14 @@ export function WeekSelector({
 }: WeekSelectorProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const sortedWeeks = [...weeks].sort((a, b) => {
+    const byClosedAt = b.closedAt.localeCompare(a.closedAt);
+    return byClosedAt !== 0 ? byClosedAt : b.weekId.localeCompare(a.weekId);
+  });
 
   const options: WeekOption[] = [
     { id: LIVE, label: 'This week (live)', live: true },
-    ...weeks.map((w) => ({ id: w.weekId, label: w.weekId, count: w.playerCount })),
+    ...sortedWeeks.map((w) => ({ id: w.weekId, label: w.weekId, count: w.playerCount })),
   ];
   const selectedId = value ?? LIVE;
   const selected = options.find((o) => o.id === selectedId) ?? options[0];

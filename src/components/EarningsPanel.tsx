@@ -3,6 +3,7 @@ import { formatMoney, formatScore } from '../lib/format';
 import { cx } from '../lib/cx';
 import { Avatar } from './Avatar';
 import { RankBadge } from './RankBadge';
+import { CoinIcon } from './icons';
 
 export interface EarningsPanelProps {
   /** Fetch state of the wallet (`usePlayerWallet().status`). */
@@ -52,11 +53,19 @@ export function EarningsPanel({
           {current && (
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
               {currentLabel}: <span className="font-medium">#{current.rank}</span>
-              {current.prize != null
-                ? current.prize > 0
-                  ? ` · 🪙 ${formatMoney(current.prize)}`
-                  : ' · no prize'
-                : ` · ${formatScore(current.score)} pts`}
+              {current.prize != null ? (
+                current.prize > 0 ? (
+                  <>
+                    {' · '}
+                    <CoinIcon className="text-brand dark:text-brand-soft" />{' '}
+                    {formatMoney(current.prize)}
+                  </>
+                ) : (
+                  ' · no prize'
+                )
+              ) : (
+                ` · ${formatScore(current.score)} pts`
+              )}
             </div>
           )}
         </div>
@@ -73,8 +82,9 @@ export function EarningsPanel({
             Couldn't load earnings.
           </div>
         ) : (
-          <div className="mt-0.5 text-2xl font-extrabold tabular-nums text-brand dark:text-brand-soft">
-            🪙 {formatMoney(wallet?.balance ?? 0)}
+          <div className="mt-0.5 flex items-center gap-1.5 text-2xl font-extrabold tabular-nums text-brand dark:text-brand-soft">
+            <CoinIcon />
+            {formatMoney(wallet?.balance ?? 0)}
           </div>
         )}
       </div>
@@ -107,8 +117,9 @@ export function EarningsPanel({
                 <span className="min-w-0 flex-1 truncate text-zinc-600 dark:text-zinc-300">
                   {p.weekId}
                 </span>
-                <span className="shrink-0 font-semibold tabular-nums text-brand dark:text-brand-soft">
-                  🪙 {formatMoney(p.prize)}
+                <span className="flex shrink-0 items-center gap-1 font-semibold tabular-nums text-brand dark:text-brand-soft">
+                  <CoinIcon />
+                  {formatMoney(p.prize)}
                 </span>
               </li>
             ))}

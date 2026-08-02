@@ -4,6 +4,7 @@ import type { LeaderboardEntry } from '../types/domain';
 import { findSelfIndex } from '../lib/leaderboard';
 import { cx } from '../lib/cx';
 import { LeaderboardRow } from './LeaderboardRow';
+import { ArrowDownIcon } from './icons';
 
 /**
  * Fixed row height (px). Must match `LeaderboardRow`'s `min-h-[3.25rem]` (52px);
@@ -84,9 +85,10 @@ export function VirtualizedLeaderboard({
       <button
         type="button"
         onClick={jumpToSelf}
-        className="rounded-full bg-me px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:opacity-90"
+        className="inline-flex items-center gap-1 rounded-full bg-me px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:opacity-90"
       >
-        ↧ Jump to my rank (#{entries[selfIndex]?.rank})
+        <ArrowDownIcon className="h-3.5 w-3.5" />
+        Jump to my rank (#{entries[selfIndex]?.rank})
       </button>
     ) : null;
 

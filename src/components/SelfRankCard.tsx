@@ -2,6 +2,7 @@ import type { LeaderboardEntry } from '../types/domain';
 import { formatMoney, formatScore } from '../lib/format';
 import { cx } from '../lib/cx';
 import { Avatar } from './Avatar';
+import { CoinIcon, TrophyIcon } from './icons';
 
 export interface SelfRankCardProps {
   /** The viewing player's own entry. */
@@ -48,22 +49,30 @@ export function SelfRankCard({
         <div className="truncate font-semibold text-zinc-900 dark:text-zinc-100">
           {entry.username}
         </div>
-        <div className="text-xs text-zinc-500 dark:text-zinc-400">
-          {hasPrize
-            ? entry.prize! > 0
-              ? '🎉 You won a prize'
-              : 'No prize this week'
-            : inTop100
-              ? '🏆 In the top 100'
-              : 'Outside the top 100'}
+        <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+          {hasPrize ? (
+            entry.prize! > 0 ? (
+              'You won a prize'
+            ) : (
+              'No prize this week'
+            )
+          ) : inTop100 ? (
+            <>
+              <TrophyIcon className="h-3.5 w-3.5 text-gold" />
+              In the top 100
+            </>
+          ) : (
+            'Outside the top 100'
+          )}
         </div>
       </div>
 
       <div className="shrink-0 text-right">
         {hasPrize ? (
           <>
-            <div className="font-bold tabular-nums text-brand dark:text-brand-soft">
-              🪙 {formatMoney(entry.prize!)}
+            <div className="flex items-center justify-end gap-1 font-bold tabular-nums text-brand dark:text-brand-soft">
+              <CoinIcon />
+              {formatMoney(entry.prize!)}
             </div>
             <div className="text-[10px] uppercase tracking-wide text-zinc-400">Prize</div>
           </>
